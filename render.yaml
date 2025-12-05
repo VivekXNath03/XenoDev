@@ -4,6 +4,7 @@ services:
     name: xeno-backend
     env: node
     region: oregon
+    plan: free
     buildCommand: npm install && npx prisma generate && npx prisma db push --accept-data-loss
     startCommand: npm start
     envVars:
@@ -28,6 +29,7 @@ services:
   - type: web
     name: xeno-frontend
     env: static
+    plan: free
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
     routes:
@@ -42,3 +44,4 @@ databases:
   - name: xeno-db
     databaseName: xeno
     user: xeno
+    plan: free
