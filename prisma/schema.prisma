@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum GlobalUserRole {
+  SUPER_ADMIN
+  ORG_USER
+  ORGANIZATION_ADMIN
+}
+
+enum UserStoreRoleType {
+  ORGANIZATION_ADMIN
+  STORE_OWNER
+  STORE_MANAGER
+  ANALYST
+}
+
+model Organization {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  users        User[]
+  stores       Store[]
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  fullName      String?
+  globalRole    GlobalUserRole @default(ORG_USER)
+
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  storeMemberships UserStoreRole[]
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+model Store {
+  id              String           @id @default(cuid())
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  organizationId  String
+
+  name            String
+  shopDomain      String           @unique
+  timezone        String?
+  currency        String?
+
+  shopifyConfig   ShopifyStoreConfig?
+  customers       Customer[]
+  products        Product[]
+  orders          Order[]
+  memberships     UserStoreRole[]
+  syncStatus      StoreSyncStatus?
+
+  lastSyncedAt    DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([organizationId])
+}
+
+model UserStoreRole {
+  id          String           @id @default(cuid())
+  user        User             @relation(fields: [userId], references: [id])
+  userId      String
+  store       Store            @relation(fields: [storeId], references: [id])
+  storeId     String
+  role        UserStoreRoleType
+
+  createdAt   DateTime         @default(now())
+
+  @@unique([userId, storeId, role])
+}
+
+model ShopifyStoreConfig {
+  id              String   @id @default(cuid())
+  store           Store    @relation(fields: [storeId], references: [id])
+  storeId         String   @unique
+
+  accessToken     String
+  scope           String
+  apiVersion      String
+  installedAt     DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Customer {
+  id              String   @id
+  organizationId  String
+  storeId         String
+
+  email           String?
+  firstName       String?
+  lastName        String?
+  defaultAddress  String?
+  totalSpent      Float    @default(0)
+  ordersCount     Int      @default(0)
+
+  createdAt       DateTime
+  updatedAt       DateTime @updatedAt
+
+  store           Store    @relation(fields: [storeId], references: [id])
+  orders          Order[]
+
+  @@index([organizationId, storeId])
+  @@index([email])
+}
+
+model Product {
+  id              String   @id
+  organizationId  String
+  storeId         String
+
+  title           String
+  handle          String?
+  sku             String?
+  status          String?
+  price           Float?
+  tags            String?
+
+  createdAt       DateTime
+  updatedAt       DateTime @updatedAt
+
+  store           Store    @relation(fields: [storeId], references: [id])
+  orderLineItems  OrderLineItem[]
+
+  @@index([organizationId, storeId])
+  @@index([handle])
+}
+
+model Order {
+  id                String   @id
+  organizationId    String
+  storeId           String
+
+  customerId        String?
+  totalPrice        Float
+  subtotalPrice     Float?
+  totalTax          Float?
+  currency          String?
+  financialStatus   String?
+  fulfillmentStatus String?
+
+  createdAt         DateTime
+  updatedAt         DateTime @updatedAt
+
+  store             Store         @relation(fields: [storeId], references: [id])
+  customer          Customer?     @relation(fields: [customerId], references: [id])
+  lineItems         OrderLineItem[]
+
+  @@index([organizationId, storeId, createdAt])
+  @@index([customerId])
+}
+
+model OrderLineItem {
+  id          String   @id @default(cuid())
+  order       Order    @relation(fields: [orderId], references: [id])
+  orderId     String
+
+  productId   String?
+  variantId   String?
+  title       String?
+  sku         String?
+  quantity    Int
+  price       Float
+  total       Float?
+
+  product     Product? @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model StoreSyncStatus {
+  id          String   @id @default(cuid())
+  store       Store    @relation(fields: [storeId], references: [id])
+  storeId     String   @unique
+
+  lastCustomersSyncAt DateTime?
+  lastProductsSyncAt  DateTime?
+  lastOrdersSyncAt    DateTime?
+  lastError           String?
+  updatedAt           DateTime @updatedAt
+}
