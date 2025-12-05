@@ -12,7 +12,6 @@ async function signup({ organizationName, organizationSlug, email, password, ful
 
   const passwordHash = await bcrypt.hash(password, env.bcryptRounds);
 
-  // create organization, user, and optional store
   const orgData = {
     name: organizationName,
     slug: organizationSlug || organizationName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
@@ -36,7 +35,6 @@ async function signup({ organizationName, organizationSlug, email, password, ful
 
   const user = organization.users[0];
 
-  // If dev direct mode and env has dev shop info, optionally create ShopifyStoreConfig for the created store
   if (env.isDevDirectMode && organization.stores && organization.stores.length > 0) {
     const store = organization.stores[0];
     try {
@@ -48,9 +46,7 @@ async function signup({ organizationName, organizationSlug, email, password, ful
           apiVersion: env.shopifyApiVersion,
         },
       });
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
   }
 
   const token = jwt.sign({ userId: user.id, organizationId: organization.id }, env.jwtSecret, { expiresIn: '7d' });

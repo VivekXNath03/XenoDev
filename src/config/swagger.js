@@ -21,7 +21,6 @@ const swaggerDefinition = {
       },
     },
   },
-  // Don't set global security - let each route specify its own
 };
 
 const options = {

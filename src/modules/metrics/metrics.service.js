@@ -7,20 +7,16 @@ async function getSummary(organizationId, allowedStoreIds = [], { from, to } = {
   if (from) where.createdAt.gte = new Date(from);
   if (to) where.createdAt.lte = new Date(to);
 
-  // Count totals
   const totalCustomers = await prisma.customer.count({ where });
   const totalOrders = await prisma.order.count({ where });
   
-  // Count products (use where clause without date filter for products)
   const productWhere = { organizationId };
   if (allowedStoreIds && allowedStoreIds.length) productWhere.storeId = { in: allowedStoreIds };
   const totalProducts = await prisma.product.count({ where: productWhere });
   
-  // Calculate revenue metrics
   const revenueAgg = await prisma.order.aggregate({ where, _sum: { totalPrice: true } });
   const totalRevenue = parseFloat(revenueAgg._sum.totalPrice || 0);
   
-  // Calculate derived metrics
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
   const ordersPerCustomer = totalCustomers > 0 ? totalOrders / totalCustomers : 0;
   const revenuePerCustomer = totalCustomers > 0 ? totalRevenue / totalCustomers : 0;
@@ -43,7 +39,6 @@ async function getOrdersByDate(organizationId, allowedStoreIds = [], { from, to 
   if (from) where.createdAt.gte = new Date(from);
   if (to) where.createdAt.lte = new Date(to);
 
-  // Use groupBy on createdAt day's date
   const grouped = await prisma.order.groupBy({
     by: ['createdAt'],
     where,
@@ -62,7 +57,6 @@ async function getTopCustomers(organizationId, allowedStoreIds = [], { from, to,
   if (from) where.createdAt.gte = new Date(from);
   if (to) where.createdAt.lte = new Date(to);
 
-  // Use Prisma groupBy to aggregate orders by customerId safely
   const grouped = await prisma.order.groupBy({
     by: ['customerId'],
     where,

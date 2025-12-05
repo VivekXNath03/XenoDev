@@ -38,7 +38,6 @@ const Dashboard = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch summary metrics
       const summaryResponse = await getSummary(
         selectedStoreId, 
         dateRange.startDate, 
@@ -46,7 +45,6 @@ const Dashboard = () => {
       );
       setSummary(summaryResponse.data);
 
-      // Fetch orders by date for chart
       const ordersResponse = await getOrdersByDate(
         selectedStoreId, 
         dateRange.startDate, 
@@ -54,10 +52,9 @@ const Dashboard = () => {
       );
       setOrdersData(ordersResponse.data);
 
-      // Fetch business alerts
       try {
         const alertsResponse = await api.get(`/analytics/business-alerts?storeId=${selectedStoreId}`);
-        setAlerts(alertsResponse.data.data.alerts.slice(0, 3)); // Top 3 alerts
+        setAlerts(alertsResponse.data.data.alerts.slice(0, 3));
       } catch (alertErr) {
         console.error('Failed to fetch alerts:', alertErr);
       }

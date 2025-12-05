@@ -68,7 +68,6 @@ const RevenueForecast = () => {
     );
   }
 
-  // Combine historical and forecast data for chart
   const chartData = [
     ...forecast.historicalData.map(d => ({
       month: d.month,

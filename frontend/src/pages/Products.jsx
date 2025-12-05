@@ -28,7 +28,6 @@ const Products = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch products directly from the database via a custom endpoint
       const response = await api.get(`/products?storeId=${selectedStoreId}`);
       setProducts(response.data.data || []);
     } catch (err) {

@@ -15,7 +15,6 @@ import RevenueForecast from './pages/RevenueForecast';
 import BusinessAlerts from './pages/BusinessAlerts';
 import ProductMatrix from './pages/ProductMatrix';
 
-// Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
   
@@ -28,7 +27,6 @@ const ProtectedRoute = ({ children }) => {
   return <Layout>{children}</Layout>;
 };
 
-// Public Route wrapper (redirects to dashboard if authenticated)
 const PublicRoute = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
   
@@ -166,10 +164,8 @@ function App() {
           }
         />
 
-        {/* Root redirect */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-        {/* 404 Not Found */}
         <Route
           path="*"
           element={

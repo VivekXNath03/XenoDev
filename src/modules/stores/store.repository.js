@@ -13,7 +13,6 @@ async function createStore({ organizationId, name, shopDomain, timezone, currenc
 }
 
 async function deleteStore(id) {
-  // Delete related records first to avoid foreign key constraint errors
   await prisma.orderLineItem.deleteMany({ 
     where: { order: { storeId: id } } 
   });
@@ -24,7 +23,6 @@ async function deleteStore(id) {
   await prisma.shopifyStoreConfig.deleteMany({ where: { storeId: id } });
   await prisma.userStoreRole.deleteMany({ where: { storeId: id } });
   
-  // Now delete the store
   return prisma.store.delete({ where: { id } });
 }
 

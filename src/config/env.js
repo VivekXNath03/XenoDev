@@ -14,11 +14,9 @@ const shopifyApiVersion = process.env.SHOPIFY_API_VERSION || '2025-10';
 const shopifyScopes = process.env.SHOPIFY_SCOPES || process.env.SHOPIFY_APP_SCOPES || '';
 const appUrl = process.env.APP_URL || process.env.SHOPIFY_APP_URL || `http://localhost:${port}`;
 
-// Dev direct mode
 const devShopDomain = process.env.DEV_SHOP_DOMAIN || null;
 const devShopAdminAccessToken = process.env.DEV_SHOP_ADMIN_ACCESS_TOKEN || null;
 
-// OAuth mode
 const shopifyApiKey = process.env.SHOPIFY_API_KEY || null;
 const shopifyApiSecret = process.env.SHOPIFY_API_SECRET || null;
 const shopifyAppScopes = process.env.SHOPIFY_APP_SCOPES || process.env.SHOPIFY_SCOPES || '';

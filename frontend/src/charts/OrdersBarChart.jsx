@@ -13,7 +13,6 @@ import { formatNumber } from '../utils/formatCurrency';
 import { format } from 'date-fns';
 
 const OrdersBarChart = ({ data = [] }) => {
-  // Transform data for chart
   const chartData = data.map((item) => ({
     date: format(new Date(item.date || item._id), 'MMM dd'),
     orders: item.orderCount || item.count || 0,

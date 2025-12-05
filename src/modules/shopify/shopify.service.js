@@ -12,7 +12,6 @@ async function getClientForStore(storeId) {
 }
 
 async function connectStoreWithOAuth(storeId, accessToken, scope, apiVersion) {
-  // Save or update ShopifyStoreConfig
   const existing = await prisma.shopifyStoreConfig.findUnique({ where: { storeId } });
   if (existing) {
     return prisma.shopifyStoreConfig.update({ where: { storeId }, data: { accessToken, scope, apiVersion } });
@@ -20,7 +19,6 @@ async function connectStoreWithOAuth(storeId, accessToken, scope, apiVersion) {
   return prisma.shopifyStoreConfig.create({ data: { storeId, accessToken, scope, apiVersion } });
 }
 
-// Fetch customers from Shopify
 async function fetchCustomers(client) {
   const CUSTOMERS_QUERY = `
     query ($cursor: String) {
@@ -54,7 +52,6 @@ async function fetchCustomers(client) {
     
     for (const edge of edges) {
       const node = edge.node;
-      // Extract numeric ID from Shopify GID (e.g., "gid://shopify/Customer/123" -> "123")
       const numericId = node.id.split('/').pop();
       allCustomers.push({
         id: numericId,
@@ -73,7 +70,6 @@ async function fetchCustomers(client) {
   return allCustomers;
 }
 
-// Fetch products from Shopify
 async function fetchProducts(client) {
   const PRODUCTS_QUERY = `
     query ($cursor: String) {
@@ -145,7 +141,6 @@ async function fetchProducts(client) {
   return allProducts;
 }
 
-// Fetch orders from Shopify
 async function fetchOrders(client) {
   const ORDERS_QUERY = `
     query ($cursor: String) {

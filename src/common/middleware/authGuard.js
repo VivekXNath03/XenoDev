@@ -18,12 +18,9 @@ module.exports = async function authGuard(req, res, next) {
       where: { id: payload.userId },
       include: { storeMemberships: true },
     });
-    if (!user) return next(Unauthorized('User not found'));
+      return next(Unauthorized('User not found'));
 
-  // Build storeRoles array
   const storeRoles = (user.storeMemberships || []).map(m => ({ storeId: m.storeId, role: m.role }));
-
-  // Determine organization-level admin: check globalRole first, then fallback to any storeMembership with ORGANIZATION_ADMIN
   const isOrgAdmin = (user.globalRole === 'ORGANIZATION_ADMIN') || (user.storeMemberships || []).some(m => m.role === 'ORGANIZATION_ADMIN');
 
     req.user = {

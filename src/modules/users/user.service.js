@@ -9,7 +9,6 @@ async function getMe(userId) {
 }
 
 async function listUsers(organizationId, requester) {
-  // requester: { isOrgAdmin, globalRole }
   if (!requester || (!requester.isOrgAdmin && requester.globalRole !== 'SUPER_ADMIN')) {
     throw Forbidden('Only organization admins can list users');
   }

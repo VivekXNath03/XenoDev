@@ -26,7 +26,6 @@ const BusinessAlerts = () => {
       const response = await api.get(`/analytics/business-alerts?storeId=${selectedStoreId}`);
       const fallback = { alertCount: 0, criticalCount: 0, alerts: [] };
       const data = response?.data?.data || fallback;
-      // Normalize shape
       const safeData = {
         alertCount: typeof data.alertCount === 'number' ? data.alertCount : 0,
         criticalCount: typeof data.criticalCount === 'number' ? data.criticalCount : 0,

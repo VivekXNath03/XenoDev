@@ -28,7 +28,6 @@ const Stores = () => {
   const refreshStore = async (storeId) => {
     try {
       setRefreshing(true);
-      // Backend expects POST /ingestion/stores/:storeId/sync
       await api.post(`/ingestion/stores/${storeId}/sync`);
       await fetchStores();
     } catch (err) {

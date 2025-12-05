@@ -24,7 +24,6 @@ const Customers = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch customers directly from the database via a custom endpoint
       const response = await api.get(`/customers?storeId=${selectedStoreId}`);
       setCustomers(response.data.data || []);
     } catch (err) {

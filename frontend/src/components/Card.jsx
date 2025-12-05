@@ -13,7 +13,6 @@ const Card = ({ children, className = '', ...props }) => {
 
 export default Card;
 
-// Also export named for compatibility with existing imports
 export { Card };
 
 export const CardHeader = ({ children, className = '' }) => {

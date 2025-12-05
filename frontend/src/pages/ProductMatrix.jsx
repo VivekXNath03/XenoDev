@@ -33,7 +33,6 @@ const ProductMatrix = () => {
         dogs: { count: 0, products: [] },
       };
       const data = response?.data?.data || fallback;
-      // Ensure all quadrants exist
       const safeData = {
         stars: data.stars || fallback.stars,
         cashCows: data.cashCows || fallback.cashCows,

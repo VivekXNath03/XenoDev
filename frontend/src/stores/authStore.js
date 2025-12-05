@@ -11,7 +11,6 @@ export const useAuthStore = create((set) => ({
   login: async (email, password) => {
     set({ isLoading: true, error: null });
     try {
-      // authService.login already returns the response data ({ token, user })
       const { token, user } = await authService.login(email, password);
       authService.setAuthData(token, user);
       set({ user, token, isAuthenticated: true, isLoading: false });

@@ -12,7 +12,6 @@ import {
 import { formatCurrency, formatNumber } from '../utils/formatCurrency';
 
 const ProductsPerformanceBarChart = ({ data = [] }) => {
-  // Transform data for chart - take top 10 products
   const chartData = data.slice(0, 10).map((item) => ({
     name: item.title?.substring(0, 20) || item.name?.substring(0, 20) || 'Unknown',
     units: item.unitsSold || item.quantitySold || 0,

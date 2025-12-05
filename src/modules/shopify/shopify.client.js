@@ -26,9 +26,7 @@ function createGraphQLClient({ shopDomain, accessToken, apiVersion = env.shopify
 }
 
 async function createClientForStoreConfig(storeConfig) {
-  // storeConfig: { store: { shopDomain }, accessToken, apiVersion }
   if (!storeConfig) {
-    // fallback to dev mode
     if (env.isDevDirectMode) {
       return createGraphQLClient({ shopDomain: env.devShopDomain, accessToken: env.devShopAdminAccessToken });
     }

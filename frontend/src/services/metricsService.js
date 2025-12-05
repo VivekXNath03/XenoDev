@@ -7,7 +7,7 @@ export const getSummary = async (storeId, from, to) => {
   if (to) params.to = to instanceof Date ? to.toISOString() : to;
   
   const response = await api.get('/metrics/summary', { params });
-  return response.data; // Backend returns { success: true, data: {...} }
+  return response.data;
 };
 
 export const getOrdersByDate = async (storeId, from, to) => {
@@ -17,7 +17,7 @@ export const getOrdersByDate = async (storeId, from, to) => {
   if (to) params.to = to instanceof Date ? to.toISOString() : to;
   
   const response = await api.get('/metrics/orders-by-date', { params });
-  return response.data; // Backend returns { success: true, data: [...] }
+  return response.data;
 };
 
 export const getTopCustomers = async (storeId, from, to, limit = 10) => {
@@ -27,5 +27,5 @@ export const getTopCustomers = async (storeId, from, to, limit = 10) => {
   if (to) params.to = to instanceof Date ? to.toISOString() : to;
   
   const response = await api.get('/metrics/top-customers', { params });
-  return response.data; // Backend returns { success: true, data: [...] }
+  return response.data;
 };

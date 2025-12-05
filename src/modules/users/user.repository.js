@@ -13,7 +13,6 @@ async function createUser({ email, passwordHash, fullName, organizationId }) {
 }
 
 async function addStoreRoles(userId, roles = []) {
-  // roles: [{ storeId, role }]
   const ops = roles.map(r => prisma.userStoreRole.create({ data: { userId, storeId: r.storeId, role: r.role } }));
   return prisma.$transaction(ops);
 }

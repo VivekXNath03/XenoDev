@@ -24,17 +24,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Swagger docs (PUBLIC - must be before other routes)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/docs.json', (req, res) => res.json(swaggerSpec));
 
-// Public / auth
 app.use('/auth', authRoutes);
-
-// Webhooks (PUBLIC - no auth) - must use specific paths
 app.use('/shopify/webhooks', shopifyWebhooks);
 
-// Root route - must come before other routes
 app.get('/', (req, res) => {
   res.json({ 
     message: 'Xeno CRM Business Acceleration Platform 🚀', 
@@ -51,7 +46,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// Protected API routes
 app.use('/organizations', orgRoutes);
 app.use('/users', userRoutes);
 app.use('/stores', storeRoutes);
@@ -62,10 +56,7 @@ app.use('/products', productsRoutes);
 app.use('/customers', customersRoutes);
 app.use('/analytics', analyticsRoutes);
 
-// 404
 app.use(notFoundHandler);
-
-// Error handler
 app.use(errorHandler);
 
 module.exports = app;

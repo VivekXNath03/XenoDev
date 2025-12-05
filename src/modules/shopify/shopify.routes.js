@@ -28,7 +28,6 @@ router.post('/stores/:storeId/shopify/connect', authGuard, storeContext, async (
       await shopifyService.connectStoreWithOAuth(req.storeId, accessToken, scope, apiVersion || env.shopifyApiVersion);
       return res.json({ success: true });
     }
-    // Dev direct: no-op if dev credentials already used
     return res.json({ success: true, note: 'Dev direct mode - using single DEV_* credentials' });
   } catch (err) {
     next(err);

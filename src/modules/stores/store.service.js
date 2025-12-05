@@ -2,11 +2,9 @@ const storeRepo = require('./store.repository');
 const { Forbidden, BadRequest } = require('../../common/errors');
 
 async function listStores(organizationId, user) {
-  // Return stores the user has access to. If org admin, return all.
   if (user.isOrgAdmin || user.globalRole === 'SUPER_ADMIN') {
     return storeRepo.findByOrganization(organizationId);
   }
-  // otherwise, return stores where user has membership
   const storeIds = (user.storeRoles || []).map(r => r.storeId);
   if (!storeIds.length) return [];
   const stores = await storeRepo.findByOrganization(organizationId);

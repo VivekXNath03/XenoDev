@@ -78,7 +78,6 @@ async function upsertOrders(organizationId, storeId, orders) {
       },
     });
 
-    // line items upsert (simple)
     if (o.lineItems && Array.isArray(o.lineItems)) {
       for (const li of o.lineItems) {
         const liId = li.id || `${id}-${li.variantId || li.sku || Math.random()}`;
@@ -116,19 +115,16 @@ async function syncStore(storeId, options = {}) {
   try {
     logger.info({ storeId }, 'Starting Shopify data sync');
 
-    // Fetch customers from Shopify
     logger.info({ storeId }, 'Fetching customers...');
     const customers = await shopifyService.fetchCustomers(client);
     logger.info({ storeId, count: customers.length }, 'Fetched customers');
     await upsertCustomers(store.organizationId, storeId, customers);
 
-    // Fetch products from Shopify
     logger.info({ storeId }, 'Fetching products...');
     const products = await shopifyService.fetchProducts(client);
     logger.info({ storeId, count: products.length }, 'Fetched products');
     await upsertProducts(store.organizationId, storeId, products);
 
-    // Fetch orders from Shopify
     logger.info({ storeId }, 'Fetching orders...');
     const orders = await shopifyService.fetchOrders(client);
     logger.info({ storeId, count: orders.length }, 'Fetched orders');

@@ -25,7 +25,6 @@ async function getTopSellingProducts(organizationId, storeId, limit = 10) {
     take: limit,
   });
 
-  // Enrich with product details
   const productIds = topProducts.map(p => p.productId);
   const products = await prisma.product.findMany({
     where: { id: { in: productIds } },
@@ -66,7 +65,6 @@ async function getTopCustomers(organizationId, storeId, limit = 10) {
     take: limit,
   });
 
-  // Enrich with customer details
   const customerIds = topCustomers.map(c => c.customerId);
   const customers = await prisma.customer.findMany({
     where: { id: { in: customerIds } },
@@ -85,7 +83,6 @@ async function getTopCustomers(organizationId, storeId, limit = 10) {
 }
 
 async function getCustomerLocationStats(organizationId, storeId) {
-  // Get all customers with their addresses
   const customers = await prisma.customer.findMany({
     where: {
       organizationId,
@@ -100,12 +97,10 @@ async function getCustomerLocationStats(organizationId, storeId) {
     },
   });
 
-  // Parse location data (assuming defaultAddress contains city/country info)
   const locationMap = {};
   
   customers.forEach(customer => {
     if (customer.defaultAddress) {
-      // Try to extract city or country from address string
       const location = customer.defaultAddress || 'Unknown';
       
       if (!locationMap[location]) {
@@ -147,7 +142,6 @@ async function getCustomerSegments(organizationId, storeId) {
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
 
-  // Get all customers with their order stats
   const customers = await prisma.customer.findMany({
     where: { organizationId, storeId },
     include: {
@@ -161,18 +155,17 @@ async function getCustomerSegments(organizationId, storeId) {
     },
   });
 
-  // Calculate total revenue for top 20% threshold
   const totalRevenue = customers.reduce((sum, c) => 
     sum + c.orders.reduce((orderSum, o) => orderSum + (o.totalPrice || 0), 0), 0
   );
   const revenueThreshold = totalRevenue * 0.2;
 
   const segments = {
-    vip: [], // Top 20% by spend
-    frequent: [], // 5+ orders
-    new: [], // First order < 30 days
-    atRisk: [], // No order in 90+ days
-    oneTime: [], // Only 1 order
+    vip: [],
+    frequent: [],
+    new: [],
+    atRisk: [],
+    oneTime: [],
   };
 
   customers.forEach(customer => {
@@ -195,33 +188,27 @@ async function getCustomerSegments(organizationId, storeId) {
       firstOrderDate,
     };
 
-    // VIP: Top spenders contributing to top 20% of revenue
     if (totalSpent >= revenueThreshold / customers.length * 5) {
       segments.vip.push(customerData);
     }
 
-    // Frequent buyers: 5+ orders
     if (orderCount >= 5) {
       segments.frequent.push(customerData);
     }
 
-    // New customers: First order within 30 days
     if (firstOrderDate && firstOrderDate >= thirtyDaysAgo) {
       segments.new.push(customerData);
     }
 
-    // At-risk: Last order > 90 days ago
     if (lastOrderDate && lastOrderDate < ninetyDaysAgo && orderCount > 1) {
       segments.atRisk.push(customerData);
     }
 
-    // One-time buyers
     if (orderCount === 1 && lastOrderDate && lastOrderDate < thirtyDaysAgo) {
       segments.oneTime.push(customerData);
     }
   });
 
-  // Sort each segment by totalSpent desc
   Object.keys(segments).forEach(key => {
     segments[key].sort((a, b) => b.totalSpent - a.totalSpent);
   });
@@ -236,8 +223,8 @@ async function getCustomerSegments(organizationId, storeId) {
   };
 }
 
+// Generates revenue forecast using exponential smoothing
 async function getRevenueForecast(organizationId, storeId, months = 3) {
-  // Use a dynamic history window for stability: at least 12 months, or 2x forecast horizon
   const historyWindowMonths = Math.max(12, months * 2);
   const windowStart = new Date();
   windowStart.setMonth(windowStart.getMonth() - historyWindowMonths);
@@ -254,7 +241,6 @@ async function getRevenueForecast(organizationId, storeId, months = 3) {
     },
   });
 
-  // Group by month
   const monthlyRevenue = {};
   orders.forEach(order => {
     const monthKey = `${order.createdAt.getFullYear()}-${String(order.createdAt.getMonth() + 1).padStart(2, '0')}`;
@@ -262,7 +248,6 @@ async function getRevenueForecast(organizationId, storeId, months = 3) {
     monthlyRevenue[monthKey] += order.totalPrice || 0;
   });
 
-  // Ensure continuous months series (fill missing with 0)
   const series = [];
   const start = new Date(windowStart.getFullYear(), windowStart.getMonth(), 1);
   const now = new Date();
@@ -277,8 +262,7 @@ async function getRevenueForecast(organizationId, storeId, months = 3) {
     return { historicalData, forecast: [], trend: 'insufficient_data', averageMonthlyRevenue: 0, growthRate: 0 };
   }
 
-  // Exponential smoothing for level + implied growth (simple SES with drift approximation)
-  const alpha = 0.4; // smoothing factor: 0<alpha<=1 (higher = more responsive)
+  const alpha = 0.4;
   let level = historicalData[0].revenue;
   let prevLevel = level;
   const smoothed = [];
@@ -288,7 +272,6 @@ async function getRevenueForecast(organizationId, storeId, months = 3) {
     smoothed.push({ month: historicalData[i].month, revenue: y, level });
   }
 
-  // Estimate average month-over-month growth on smoothed series
   let totalGrowth = 0;
   let growthCount = 0;
   for (let i = 1; i < smoothed.length; i++) {
@@ -306,17 +289,15 @@ async function getRevenueForecast(organizationId, storeId, months = 3) {
   const sortedRev = [...historicalData.map(d => d.revenue)].sort((a,b)=>a-b);
   const medianRevenue = sortedRev.length ? sortedRev[Math.floor(sortedRev.length/2)] : 0;
 
-  // Forecast next N months using last smoothed level and avg growth with dampening
-  // Clamp extreme growth when baselines are tiny to avoid absurd forecasts
   const baseline = Math.max(medianRevenue, avgRevenue, smoothed[smoothed.length - 1].level);
-  const clampedGrowth = isFinite(avgGrowthRate) ? Math.max(-0.5, Math.min(avgGrowthRate, 0.5)) : 0; // +/-50% per month cap
+  const clampedGrowth = isFinite(avgGrowthRate) ? Math.max(-0.5, Math.min(avgGrowthRate, 0.5)) : 0;
 
   const forecast = [];
   let last = baseline;
   for (let i = 1; i <= months; i++) {
     const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
     const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    const dampening = Math.pow(0.92, i - 1); // stronger dampening for longer horizons
+    const dampening = Math.pow(0.92, i - 1);
     last = last * (1 + clampedGrowth * dampening);
     forecast.push({ month: key, revenue: Math.max(0, last), confidence: Math.max(0.4, 1 - i * 0.18) });
   }
@@ -339,7 +320,6 @@ async function getBusinessAlerts(organizationId, storeId) {
 
   const alerts = [];
 
-  // Revenue drop alert
   const recentRevenue = await prisma.order.aggregate({
     where: { organizationId, storeId, createdAt: { gte: sevenDaysAgo } },
     _sum: { totalPrice: true },
@@ -377,7 +357,6 @@ async function getBusinessAlerts(organizationId, storeId) {
     }
   }
 
-  // Product trending alert
   const trendingProducts = await prisma.orderLineItem.groupBy({
     by: ['productId'],
     where: {
@@ -408,7 +387,6 @@ async function getBusinessAlerts(organizationId, storeId) {
     }
   }
 
-  // At-risk customers alert
   const atRiskCustomers = await prisma.customer.findMany({
     where: {
       organizationId,
@@ -443,7 +421,6 @@ async function getBusinessAlerts(organizationId, storeId) {
     });
   }
 
-  // Low inventory alert (products with no recent sales)
   const slowMovingProducts = await prisma.product.findMany({
     where: {
       organizationId,
@@ -470,7 +447,6 @@ async function getBusinessAlerts(organizationId, storeId) {
     });
   }
 
-  // Sort alerts by severity
   const severityOrder = { critical: 0, warning: 1, success: 2, info: 3 };
   alerts.sort((a, b) => severityOrder[a.type] - severityOrder[b.type]);
 
@@ -485,7 +461,6 @@ async function getProductPerformanceMatrix(organizationId, storeId) {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
 
-  // Get all products with recent sales data
   const products = await prisma.product.findMany({
     where: { organizationId, storeId },
     include: {
@@ -537,13 +512,12 @@ async function getProductPerformanceMatrix(organizationId, storeId) {
     };
   });
 
-  // Calculate medians for classification
   const revenues = productsWithMetrics.map(p => p.recentRevenue).filter(r => r > 0).sort((a, b) => a - b);
   const medianRevenue = revenues.length > 0 ? revenues[Math.floor(revenues.length / 2)] : 0;
-  const medianGrowth = 10; // 10% growth threshold
+  const medianGrowth = 10;
 
   productsWithMetrics.forEach(product => {
-    if (product.recentRevenue === 0 && product.growthRate === 0) return; // Skip products with no sales
+    if (product.recentRevenue === 0 && product.growthRate === 0) return;
 
     if (product.recentRevenue >= medianRevenue && product.growthRate >= medianGrowth) {
       matrix.stars.push(product);
@@ -556,7 +530,6 @@ async function getProductPerformanceMatrix(organizationId, storeId) {
     }
   });
 
-  // Sort each category
   matrix.stars.sort((a, b) => b.recentRevenue - a.recentRevenue);
   matrix.cashCows.sort((a, b) => b.recentRevenue - a.recentRevenue);
   matrix.questionMarks.sort((a, b) => b.growthRate - a.growthRate);

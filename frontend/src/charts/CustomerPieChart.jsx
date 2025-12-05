@@ -10,8 +10,6 @@ const COLORS = {
 };
 
 const CustomerPieChart = ({ data = [] }) => {
-  // Transform data for segmentation
-  // Segment by total spend
   const chartData = [
     {
       name: 'High Value',
@@ -37,7 +35,7 @@ const CustomerPieChart = ({ data = [] }) => {
       value: data.filter((c) => parseFloat(c.totalSpent || 0) === 0).length,
       color: COLORS.inactive,
     },
-  ].filter((item) => item.value > 0); // Remove empty segments
+  ].filter((item) => item.value > 0);
 
   const CustomTooltip = ({ active, payload }) => {
     if (!active || !payload || !payload.length) return null;
