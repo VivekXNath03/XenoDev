@@ -45,7 +45,7 @@ It's multi-tenant from the ground up—different organizations using the same pl
 
 ## How It All Works
 
-Here's the architecture (yes, I drew it in ASCII):
+Here's the architecture:
 
 ```
                     ┌─────────────────────┐
